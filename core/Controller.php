@@ -1,18 +1,33 @@
 <?php
 // core/Controller.php
 class Controller {
-    // Hàm gọi Model
     public function model($model) {
-        require_once '../app/models/' . $model . '.php';
+    if (class_exists($model)) {
         return new $model();
     }
+    return new $model();
+}
 
     // Hàm gọi View và truyền dữ liệu
     public function view($view, $data = []) {
-        if (file_exists('../app/views/' . $view . '.php')) {
-            require_once '../app/views/' . $view . '.php';
-        } else {
-            die("View không tồn tại: " . $view);
-        }
+    // Giải nén mảng data thành các biến riêng lẻ (ví dụ: $data['products'] thành $products)
+    extract($data);
+
+    // 1. Nhúng Header (Nơi chứa CSS và jQuery)
+    if (file_exists('../app/views/layouts/header.php')) {
+        require_once '../app/views/layouts/header.php';
     }
+
+    // 2. Nhúng View chính (ví dụ: products/index.php)
+    if (file_exists('../app/views/' . $view . '.php')) {
+        require_once '../app/views/' . $view . '.php';
+    } else {
+        die("View không tồn tại.");
+    }
+
+    // 3. Nhúng Footer (Nơi chứa các script kết thúc trang)
+    if (file_exists('../app/views/layouts/footer.php')) {
+        require_once '../app/views/layouts/footer.php';
+    }
+}
 }

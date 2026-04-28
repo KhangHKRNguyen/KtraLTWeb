@@ -31,12 +31,12 @@
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="exportDropdown">
                     <li>
-                        <a class="dropdown-item" href="index.php?controller=product&action=export_template">
+                        <a class="dropdown-item" href="index.php?url=product/export_template">
                             <i class="fas fa-file-alt me-2 text-secondary"></i> Tải Template
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item" href="index.php?controller=product&action=export_products">
+                        <a class="dropdown-item" href="index.php?url=product/export_products">
                             <i class="fas fa-file-excel me-2 text-success"></i> Xuất toàn bộ sản phẩm
                         </a>
                     </li>
@@ -44,11 +44,11 @@
             </div>
 
 
-            <a href="index.php?controller=product&action=import" class="btn btn-info-modern">
+            <a href="index.php?url=product/import" class="btn btn-info-modern">
                 <i class="fas fa-file-excel"></i> Import Excel
             </a>
 
-            <a href="index.php?controller=product&action=create" class="btn btn-primary-modern">
+            <a href="index.php?url=product/create" class="btn btn-primary-modern">
                 <i class="fas fa-plus"></i> Thêm mới
             </a>
         </div>
@@ -206,6 +206,8 @@ $(document).ready(function() {
     const modalEditButton = $('#modal-edit-button');
 
     let currentPage = 1;
+    let retryCount = 0;
+    const MAX_RETRIES = 3;
 
     function escapeHtml(str) {
         if (!str) return '';
@@ -217,15 +219,23 @@ $(document).ready(function() {
             .replace(/'/g, "&#039;");
     }
 
-    function loadProducts(page = 1) {
-        currentPage = page;
+    let currentAjaxRequest = null; // Store current AJAX request
 
+    function loadProducts(page = 1, retryNum = 0) {
+        // Hủy request cũ nếu đang pending
+        if (currentAjaxRequest !== null) {
+            currentAjaxRequest.abort();
+            console.log("Aborted previous AJAX request");
+        }
+
+        currentPage = page;
         $('.loading-overlay').addClass('show');
 
-        $.ajax({
-            url: 'index.php?controller=product&action=ajax_list',
+        currentAjaxRequest = $.ajax({
+            url: 'index.php?url=product/ajax_list',
             type: 'GET',
             dataType: 'json',
+            timeout: 15000,
             data: {
                 search: $('#search').val(),
                 category_id: $('#category_id').val(),
@@ -239,24 +249,60 @@ $(document).ready(function() {
                     $('#product-table-body').html(response.table_html);
                     $('#pagination-container').html(response.pagination_html);
                     $('#product-count').text(response.total_products + ' sản phẩm');
+                    retryCount = 0;
                 } else {
                     $('#product-table-body').html(`
                         <tr>
                             <td colspan="9" class="text-center text-danger py-4">
-                                Không thể tải dữ liệu
+                                Không thể tải dữ liệu: ${response.message || 'Lỗi không xác định'}
                             </td>
                         </tr>
                     `);
                 }
+                currentAjaxRequest = null; // Clear request after completion
             },
-            error: function() {
+            error: function(xhr, status, error) {
+                // Ignore abort errors
+                if (status === 'abort') {
+                    console.log("AJAX request aborted");
+                    return;
+                }
+
+                console.log("AJAX Error - Status:", status, "Error:", error, "Response:", xhr.responseText);
+                
+                if ((status === 'timeout' || status === 'error') && retryNum < MAX_RETRIES) {
+                    console.log(`Thử lại lần ${retryNum + 1}/${MAX_RETRIES}`);
+                    setTimeout(() => {
+                        loadProducts(page, retryNum + 1);
+                    }, 2000);
+                    return;
+                }
+
+                let errorMsg = "Lỗi kết nối. Vui lòng thử lại!";
+                
+                if (status === 'timeout') {
+                    errorMsg = "Yêu cầu timeout - Server phản hồi chậm";
+                } else if (status === 'error') {
+                    errorMsg = `Lỗi: ${error}`;
+                }
+
+                try {
+                    let res = JSON.parse(xhr.responseText);
+                    if (res.message) errorMsg = res.message;
+                } catch(e) {
+                    if (xhr.responseText) {
+                        errorMsg = xhr.responseText.substring(0, 200);
+                    }
+                }
+
                 $('#product-table-body').html(`
                     <tr>
-                        <td colspan="9" class="text-center text-danger py-4">
-                            Có lỗi xảy ra khi tải dữ liệu
+                        <td colspan="9" class="text-center text-danger py-4" style="word-break: break-all;">
+                            <strong>Lỗi:</strong> ${escapeHtml(errorMsg)}
                         </td>
                     </tr>
                 `);
+                currentAjaxRequest = null;
             },
             complete: function() {
                 $('.loading-overlay').removeClass('show');
@@ -274,13 +320,16 @@ $(document).ready(function() {
     $(document).on('click', '#pagination-container .page-link', function(e) {
         e.preventDefault();
         const page = $(this).data('page');
-        loadProducts(page);
+        // Thêm delay nhỏ để tránh double click
+        setTimeout(() => {
+            loadProducts(page);
+        }, 100);
     });
 
     modalElement.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
         const productId = button.getAttribute('data-id');
-        const editUrl = `index.php?controller=product&action=edit&id=${productId}`;
+        const editUrl = `index.php?url=product/edit&id=${productId}`;
         modalEditButton.attr('href', editUrl);
 
         modalBody.html(`
@@ -292,7 +341,7 @@ $(document).ready(function() {
         `);
 
         $.ajax({
-            url: 'index.php?controller=product&action=ajax_get_details',
+            url: 'index.php?url=product/ajax_get_details',
             type: 'GET',
             data: { id: productId },
             dataType: 'json',

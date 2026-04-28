@@ -26,8 +26,9 @@ class Product
         $where_clauses = [];
 
         if (!empty($search)) {
-            $where_clauses[] = "(p.name LIKE :search OR p.sku LIKE :search)";
-            $params[':search'] = '%' . $search . '%';
+            $where_clauses[] = "(p.name LIKE :search1 OR p.sku LIKE :search2)";
+            $params[':search1'] = '%' . $search . '%';
+            $params[':search2'] = '%' . $search . '%';
         }
         if ($category_id > 0) {
             $where_clauses[] = "p.category_id = :category_id";
@@ -42,7 +43,7 @@ class Product
             $query .= " WHERE " . implode(' AND ', $where_clauses);
         }
 
-        $query .= " GROUP BY p.id ";
+        $query .= " GROUP BY p.id, c.name, s.name ";
 
         $having_clauses = [];
         if ($min_price > 0) {
@@ -85,8 +86,9 @@ class Product
         $where_clauses = [];
 
         if (!empty($search)) {
-            $where_clauses[] = "(p.name LIKE :search OR p.sku LIKE :search)";
-            $params[':search'] = '%' . $search . '%';
+            $where_clauses[] = "(p.name LIKE :search1 OR p.sku LIKE :search2)";
+            $params[':search1'] = '%' . $search . '%';
+            $params[':search2'] = '%' . $search . '%';
         }
         if ($category_id > 0) {
             $where_clauses[] = "p.category_id = :category_id";
@@ -101,7 +103,7 @@ class Product
             $query .= " WHERE " . implode(' AND ', $where_clauses);
         }
 
-        $query .= " GROUP BY p.id ";
+        $query .= " GROUP BY p.id, c.name, s.name ";
 
         $having_clauses = [];
         if ($min_price > 0) {

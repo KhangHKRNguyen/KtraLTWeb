@@ -9,7 +9,7 @@ class ProductController extends Controller {
     private $imageModel;
 
     public function __construct() {
-        Middleware::auth();
+        // Middleware::auth();
         // Khởi tạo các model cần thiết
         $this->productModel  = $this->model('Product');
         $this->categoryModel = $this->model('Category');
@@ -61,10 +61,19 @@ class ProductController extends Controller {
     // AJAX ACTIONS
     // ============================================================
 
-    public function ajaxList() {
-        header('Content-Type: application/json');
+    public function ajax_list() {
+        set_time_limit(30);
+        
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        
         try {
-            // Lấy filter từ request
             $params = $this->getFilterParams();
             $limit = 10;
             $offset = ($params['page'] - 1) * $limit;
@@ -132,7 +141,10 @@ class ProductController extends Controller {
         exit;
     }
     
-    public function ajaxGetDetails() {
+    public function ajax_get_details() {
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
         header('Content-Type: application/json');
 
         try {
@@ -343,10 +355,20 @@ class ProductController extends Controller {
     }
 
     private function renderProductRow($row) {
-        $base_url = URLROOT . '/public/assets/images/products/';
-        $image = !empty($row['image'])
-            ? '<img src="' . $base_url . htmlspecialchars($row['image']) . '" class="product-thumbnail">'
-            : '<div class="product-thumbnail bg-light d-flex align-items-center justify-content-center"><i class="fas fa-image text-muted"></i></div>';
+        $base_url = URLROOT . '/public/';
+    
+        if (!empty($row['image'])) {
+            // Đơn giản - nếu chứa 'assets/images', prepend URLROOT/public/
+            // Nếu không, giả sử là path đầy đủ từ public/
+            if (strpos($row['image'], 'assets/images') !== false) {
+                $src = $base_url . $row['image'];
+            } else {
+                $src = $base_url . 'assets/images/products/' . $row['image'];
+            }
+            $image = '<img src="' . htmlspecialchars($src) . '" class="product-thumbnail" alt="Product">';
+        } else {
+            $image = '<div class="product-thumbnail bg-light d-flex align-items-center justify-content-center"><i class="fas fa-image text-muted"></i></div>';
+        }
 
         return '
             <tr class="fade-in">
@@ -364,7 +386,7 @@ class ProductController extends Controller {
                 <td>' . (!empty($row['created_at']) ? date('d/m/Y', strtotime($row['created_at'])) : 'N/A') . '</td>
                 <td>
                     <div class="action-buttons">
-                        <a href="index.php?controller=product&action=edit&id=' . $row['id'] . '" class="btn btn-warning-modern btn-sm">
+                        <a href="index.php?url=product/edit&id=' . $row['id'] . '" class="btn btn-warning-modern btn-sm">
                             <i class="fas fa-edit"></i> Sửa
                         </a>
                         <button class="btn btn-danger-modern btn-sm btn-delete-product" data-id="' . $row['id'] . '">

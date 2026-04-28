@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 require_once '../config/config.php';
 require_once '../app/helpers/utils.php';
 require_once '../vendor/autoload.php';
@@ -22,3 +24,4 @@ spl_autoload_register(function($className) {
 
 // Khởi tạo đối tượng App để bắt đầu Routing
 $app = new App();
+?>

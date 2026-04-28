@@ -13,8 +13,8 @@ class Database {
         // Thiết lập DSN (Data Source Name)
         $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->dbname;
         $options = [
-            PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_EMULATE_PREPARES => false,
             PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"
         ];
 
@@ -28,12 +28,12 @@ class Database {
     }
 
     // Hàm hỗ trợ thực thi câu lệnh SQL (Helper function)
-    // Sau này trong Model bạn chỉ cần dùng: $this->db->query("SELECT...")
     public function query($sql, $params = []) {
         $stmt = $this->dbh->prepare($sql);
         $stmt->execute($params);
         return $stmt;
     }
+
     public function beginTransaction() {
         return $this->dbh->beginTransaction();
     }
@@ -46,8 +46,16 @@ class Database {
         return $this->dbh->rollBack();
     }
 
+    public function inTransaction() {
+        return $this->dbh->inTransaction();
+    }
+
     public function lastInsertId() {
         return $this->dbh->lastInsertId();
+    }
+
+    public function setAttribute($attr, $value) {
+        return $this->dbh->setAttribute($attr, $value);
     }
 }
 ?>
