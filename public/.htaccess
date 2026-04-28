@@ -1,0 +1,16 @@
+# 1. SECURITY & PERFORMANCE
+Options -Indexes
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 2. CLEAN URL REWRITE
+RewriteEngine On
+
+# TỰ ĐỘNG NHẬN DIỆN THƯ MỤC GỐC
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# QUAN TRỌNG: Chỉ chuyển hướng nếu đường dẫn KHÔNG phải là file hoặc thư mục có thật
+RewriteRule ^(.+)$ index.php?url=$1 [QSA,L]

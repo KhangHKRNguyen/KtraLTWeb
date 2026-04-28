@@ -1,0 +1,4 @@
+# Chặn truy cập trực tiếp vào thư mục nhạy cảm
+RewriteEngine On
+
+RewriteRule ^(app|core|config)/ - [F,L]
