@@ -9,6 +9,10 @@ $(document).ready(function () {
     const toastContainer = $('.toast-container');
     const searchForm = $('#search-form');
     const productCount = $('#product-count');
+    
+    // ========== Request Control Variables ==========
+    let currentXHR = null;
+    let currentRequestId = 0;
 
     // ========== Toast Notification System ==========
     function showToast(message, type = 'success') {
@@ -58,24 +62,36 @@ $(document).ready(function () {
         const category_id = $('#category_id').val();
         const supplier_id = $('#supplier_id').val();
 
+        if (currentXHR) {
+            currentXHR.abort();
+        }
+
+        currentRequestId++;
+        const thisRequestId = currentRequestId;
+
         // Hiển thị loading
         loadingOverlay.fadeIn(200);
 
         $.ajax({
-            url: SITE_URL,
+            url: SITE_URL + '?url=product/ajax_list',
             type: 'GET',
             dataType: 'json',
-            data:{
-                    controller: 'product',
-                    action: 'ajax_list',
-                    page: page,
-                    search: search,
-                    category_id: $('#category_id').val(),
-                    supplier_id: $('#supplier_id').val(),
-                    min_price: min_price,
-                    max_price: max_price
-                },
+            timeout: 15000,
+            data: {
+                page: page,
+                search: search,
+                category_id: $('#category_id').val(),
+                supplier_id: $('#supplier_id').val(),
+                min_price: min_price,
+                max_price: max_price
+            },
             success: function (response) {
+
+                if (thisRequestId !== currentRequestId) {
+                    console.warn('Bỏ qua response từ request cũ');
+                    return;
+                }
+
                 if (response.success) {
                     // Cập nhật table body
                     tableBody.html(response.table_html);
@@ -108,6 +124,16 @@ $(document).ready(function () {
                 }
             },
             error: function (xhr, status, error) {
+                if (thisRequestId !== currentRequestId) {
+                    console.warn('Bỏ qua error từ request cũ');
+                    return;
+                }
+
+                if (status === 'abort') {
+                    console.log('Request bị cancel (hủy bỏ)');
+                    return;
+                }
+
                 showToast('Lỗi kết nối. Vui lòng thử lại!', 'error');
                 tableBody.html(`
                     <tr>
@@ -120,10 +146,12 @@ $(document).ready(function () {
                         </td>
                     </tr>
                 `);
-                console.error('AJAX Error:', error);
+                console.error('AJAX Error:', error, status);
             },
             complete: function () {
-                loadingOverlay.fadeOut(200);
+                if (thisRequestId === currentRequestId) {
+                    loadingOverlay.fadeOut(200);
+                }
             }
         });
     }
@@ -138,12 +166,11 @@ $(document).ready(function () {
             .html('<i class="fas fa-spinner fa-spin"></i> Đang xóa...');
 
         $.ajax({
-            url: SITE_URL,
+            url: SITE_URL + '?url=product/ajaxDelete',
             type: 'POST',
             dataType: 'json',
+            timeout: 10000,
             data: {
-                controller: 'product',
-                action: 'ajax_delete',
                 id: productId
             },
             success: function (response) {
@@ -177,8 +204,12 @@ $(document).ready(function () {
                     $button.prop('disabled', false).html(originalHTML);
                 }
             },
-            error: function () {
-                showToast('Lỗi kết nối, không thể xóa!', 'error');
+            error: function (xhr, status, error) {
+                if (status === 'timeout') {
+                    showToast('Kết nối timed out, vui lòng thử lại!', 'error');
+                } else if (status !== 'abort') {
+                    showToast('Lỗi kết nối, không thể xóa!', 'error');
+                }
                 $button.prop('disabled', false).html(originalHTML);
             }
         });
@@ -279,5 +310,168 @@ $(document).ready(function () {
         }
     });
 
-    console.log('✅ Product Management System Initialized');
+    // ========== Product Detail Modal ==========
+    let detailAbortController = null;
+    let detailRequestId = 0;
+
+    $(document).on('click', '.btn-view-product', function (e) {
+        e.preventDefault();
+        const productId = $(this).data('id');
+        const modal = $('#productDetailModal');
+        const modalBody = $('#product-detail-content');
+        const modalEditBtn = $('#modal-edit-button');
+
+        if (detailAbortController) {
+            detailAbortController.abort();
+        }
+
+        detailRequestId++;
+        const thisDetailRequestId = detailRequestId;
+        detailAbortController = new AbortController();
+
+        // Hiển thị loading
+        modalBody.html(`
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang tải...</span>
+                </div>
+            </div>
+        `);
+
+        // Show modal
+        const bsModal = new bootstrap.Modal(modal, { backdrop: 'static', keyboard: false });
+        bsModal.show();
+
+        // Fetch detail
+        $.ajax({
+            url: SITE_URL + '?url=product/ajax_get_details',
+            type: 'GET',
+            dataType: 'json',
+            timeout: 10000,
+            data: {
+                id: productId
+            },
+            success: function (response) {
+                if (thisDetailRequestId !== detailRequestId) {
+                    return;
+                }
+
+                if (response.success) {
+                    renderDetailModal(response.product, response.variants, productId);
+                    modalEditBtn.attr('href', 'index.php?url=product/edit&id=' + productId);
+                } else {
+                    modalBody.html(`
+                        <div class="alert alert-danger m-3">
+                            <i class="fas fa-exclamation-circle"></i> ${response.message || 'Có lỗi xảy ra'}
+                        </div>
+                    `);
+                }
+            },
+            error: function (xhr, status, error) {
+                if (thisDetailRequestId !== detailRequestId) {
+                    return;
+                }
+
+                if (status === 'abort') {
+                    return;
+                }
+
+                modalBody.html(`
+                    <div class="alert alert-danger m-3">
+                        <i class="fas fa-exclamation-circle"></i> Không thể tải chi tiết sản phẩm. Vui lòng thử lại.
+                    </div>
+                `);
+            }
+        });
+    });
+
+    function renderDetailModal(product, variants, productId) {
+        const modalBody = $('#product-detail-content');
+
+        let html = `
+            <div class="modern-card mb-3">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3 text-center">
+                            <img src="${product.image || SITE_URL.split('?')[0] + '/../assets/images/default-product.png'}"
+                                class="img-fluid rounded shadow-sm"
+                                alt="${escapeHtml(product.name)}"
+                                style="max-height: 150px; object-fit: cover;">
+                        </div>
+                        <div class="col-md-9">
+                            <h5 class="mb-2">${escapeHtml(product.name)}</h5>
+                            <span class="badge bg-secondary fs-6 mb-3">SKU: ${escapeHtml(product.sku)}</span>
+                            <p class="text-muted small mb-2">
+                                ${escapeHtml(product.description || 'Chưa có mô tả')}
+                            </p>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Danh mục:</strong> ${escapeHtml(product.category_name || 'N/A')}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Nhà cung cấp:</strong> ${escapeHtml(product.supplier_name || 'N/A')}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (variants && variants.length > 0) {
+            html += `
+                <div class="modern-card">
+                    <div class="card-header-modern">
+                        <h6><i class="fas fa-boxes"></i> Biến thể (${variants.length})</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Màu</th>
+                                        <th>Dung lượng</th>
+                                        <th>Giá</th>
+                                        <th>Tồn kho</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+            `;
+
+            variants.forEach(v => {
+                const price = new Intl.NumberFormat('vi-VN').format(v.price);
+                const stock = new Intl.NumberFormat('vi-VN').format(v.stock);
+                html += `
+                    <tr>
+                        <td>${escapeHtml(v.color || 'N/A')}</td>
+                        <td>${escapeHtml(v.storage || 'N/A')}</td>
+                        <td><strong>${price} đ</strong></td>
+                        <td><span class="badge bg-info">${stock}</span></td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        modalBody.html(html);
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    console.log('Product Management System Initialized');
 });

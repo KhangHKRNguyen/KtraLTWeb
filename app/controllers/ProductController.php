@@ -26,7 +26,8 @@ class ProductController extends Controller {
         $data = [
             'page_title' => "Quản lý Sản phẩm",
             'categories' => $this->categoryModel->getAll(),
-            'suppliers'  => $this->supplierModel->getAll()
+            'suppliers'  => $this->supplierModel->getAll(),
+            'page_js_file' => 'assets/js/product-index.js'
         ];
         $this->view('products/index', $data);
     }
@@ -35,9 +36,90 @@ class ProductController extends Controller {
         $data = [
             'page_title' => "Thêm Sản phẩm mới",
             'categories' => $this->categoryModel->getAll(),
-            'suppliers'  => $this->supplierModel->getAll()
+            'suppliers'  => $this->supplierModel->getAll(),
+            'page_js_file' => 'assets/js/product-index.js'
         ];
         $this->view('products/create', $data);
+    }
+
+    public function store() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header("Location: index.php?url=product/create");
+            exit;
+        }
+
+        try {
+            // 1. Lấy dữ liệu từ form
+            $name = trim($_POST['name'] ?? '');
+            $sku = trim($_POST['sku'] ?? '');
+            $description = $_POST['description'] ?? '';
+            $category_id = (int)($_POST['category_id'] ?? 0);
+            $supplier_id = (int)($_POST['supplier_id'] ?? 0);
+            
+            // 2. Validate dữ liệu
+            if (empty($name) || empty($sku)) {
+                throw new Exception('Tên sản phẩm và SKU không được để trống');
+            }
+
+            if ($category_id <= 0 || $supplier_id <= 0) {
+                throw new Exception('Vui lòng chọn danh mục và nhà cung cấp');
+            }
+
+            // 3. Kiểm tra SKU có bị trùng không
+            if ($this->productModel->findBySKU($sku)) {
+                throw new Exception('SKU này đã tồn tại');
+            }
+
+            // 4. Xử lý upload ảnh (nếu có)
+            $image = '';
+            if (!empty($_FILES['image']['name'])) {
+                $uploadDir = '../public/assets/images/products/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                $file = $_FILES['image'];
+                $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                $allowedExt = ['jpg', 'jpeg', 'png', 'gif'];
+
+                if (!in_array($ext, $allowedExt)) {
+                    throw new Exception('Chỉ hỗ trợ file jpg, jpeg, png, gif');
+                }
+
+                $fileName = uniqid('product_') . '.' . $ext;
+                $filePath = $uploadDir . $fileName;
+
+                if (!move_uploaded_file($file['tmp_name'], $filePath)) {
+                    throw new Exception('Lỗi upload file');
+                }
+
+                $image = $fileName;
+            }
+
+            // 5. Lưu sản phẩm
+            $productData = [
+                ':sku' => $sku,
+                ':name' => $name,
+                ':description' => $description,
+                ':category_id' => $category_id,
+                ':supplier_id' => $supplier_id,
+                ':image' => $image
+            ];
+
+            if ($this->productModel->create($productData)) {
+                $_SESSION['success_message'] = "Thêm sản phẩm '$name' thành công!";
+                header("Location: index.php?url=product");
+                exit;
+            } else {
+                throw new Exception('Không thể lưu sản phẩm');
+            }
+
+        } catch (Exception $e) {
+            $_SESSION['old_input'] = $_POST;
+            $_SESSION['error_message'] = $e->getMessage();
+            header("Location: index.php?url=product/create");
+            exit;
+        }
     }
 
     public function edit() {
@@ -62,7 +144,7 @@ class ProductController extends Controller {
     // ============================================================
 
     public function ajax_list() {
-        set_time_limit(30);
+        set_time_limit(60);
         
         while (ob_get_level()) {
             ob_end_clean();
@@ -72,6 +154,7 @@ class ProductController extends Controller {
         header('Cache-Control: no-cache, no-store, must-revalidate');
         header('Pragma: no-cache');
         header('Expires: 0');
+        header('Access-Control-Allow-Origin: *');
         
         try {
             $params = $this->getFilterParams();
@@ -83,10 +166,18 @@ class ProductController extends Controller {
                 $params['category_id'], $params['supplier_id']
             );
             
+            if ($totalRecords === false) {
+                throw new Exception('Không thể lấy số lượng sản phẩm từ database');
+            }
+            
             $products = $this->productModel->getAll(
                 $params['search'], $params['min_price'], $params['max_price'], 
                 $params['category_id'], $params['supplier_id'], $limit, $offset
             );
+            
+            if ($products === false) {
+                throw new Exception('Không thể lấy danh sách sản phẩm từ database');
+            }
 
             $tableHtml = '';
             foreach ($products as $row) {
@@ -101,16 +192,31 @@ class ProductController extends Controller {
             ]);
         } catch (Exception $e) {
             http_response_code(500);
-            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Lỗi kết nối cơ sở dữ liệu: ' . $e->getMessage()
+            ]);
         }
         exit;
     }
 
     public function ajaxDelete() {
-        header('Content-Type: application/json');
-        $db = $this->productModel->getDB(); // Giả sử model có getter cho DB connection
+        set_time_limit(30);
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        
+        $db = $this->productModel->getDB();
         try {
             $id = (int)($_POST['id'] ?? 0);
+            
+            if ($id <= 0) {
+                throw new Exception('ID sản phẩm không hợp lệ');
+            }
+            
             $product = $this->productModel->getByID($id);
             if (!$product) throw new Exception('Sản phẩm không tồn tại');
 
@@ -126,17 +232,26 @@ class ProductController extends Controller {
 
             // 3. Xóa ảnh đại diện
             if (!empty($product['image']) && file_exists($product['image'])) {
-                unlink($product['image']);
+                @unlink($product['image']);
             }
 
             // 4. Xóa chính sản phẩm
             if ($this->productModel->delete($id)) {
                 $db->commit();
-                echo json_encode(['success' => true, 'message' => "Đã xóa {$product['name']}"]);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => "Đã xóa sản phẩm: {$product['name']}"
+                ]);
+            } else {
+                throw new Exception('Không thể xóa sản phẩm');
             }
         } catch (Exception $e) {
             if ($db->inTransaction()) $db->rollBack();
-            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            http_response_code(500);
+            echo json_encode([
+                'success' => false, 
+                'message' => $e->getMessage()
+            ]);
         }
         exit;
     }
@@ -379,7 +494,7 @@ class ProductController extends Controller {
                 <td>' . htmlspecialchars($row['supplier_name'] ?? 'N/A') . '</td>
                 <td>
                     <span class="price-badge">
-                        ' . number_format($row['min_price']) . ' - ' . number_format($row['max_price']) . ' đ
+                        ' . number_format($row['min_price'] ?? 0) . ' - ' . number_format($row['max_price'] ?? 0) . ' đ
                     </span>
                 </td>
                 <td><span class="stock-badge">' . intval($row['total_stock']) . '</span></td>

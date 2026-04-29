@@ -9,8 +9,18 @@ unset($_SESSION['old_input']);
     <div class="col-md-8 offset-md-2">
         <div class="card">
             <div class="card-body">
-                <form action="index.php?controller=product&action=store" method="POST" enctype="multipart/form-data">
-                    
+                <form action="index.php?url=product/store" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="sku" class="form-label">Mã SKU</label>
+                        <input 
+                            type="text" 
+                            name="sku" 
+                            id="sku" 
+                            class="form-control" 
+                            value="<?= htmlspecialchars($old['sku'] ?? '') ?>" 
+                            required
+                        >
+                    </div>
                     <div class="mb-3">
                         <label for="name" class="form-label">Tên sản phẩm</label>
                         <input 
