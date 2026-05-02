@@ -84,8 +84,64 @@ unset($_SESSION['old_input']);
                         >
                     </div>
 
-                    <a href="index.php?controller=product&action=index" class="btn btn-secondary">Hủy</a>
-                    <button type="submit" class="btn btn-primary">Lưu và tiếp tục (để thêm biến thể)</button>
+                    <!-- ========== BIẾN THỂ BAN ĐẦU ========== -->
+                    <hr>
+                    <h5 class="mb-3">Thêm biến thể ban đầu (Tùy chọn)</h5>
+                    
+                    <div class="mb-3">
+                        <label for="color" class="form-label">Màu sắc</label>
+                        <select class="form-select" id="color" name="color">
+                            <option value="">-- Không chọn (bỏ qua) --</option>
+                            <option value="Đen">Đen</option>
+                            <option value="Trắng">Trắng</option>
+                            <option value="Bạc">Bạc</option>
+                            <option value="Xám">Xám</option>
+                            <option value="Vàng">Vàng</option>
+                            <option value="Đỏ">Đỏ</option>
+                            <option value="Xanh Dương">Xanh Dương</option>
+                            <option value="Xanh Lá">Xanh Lá</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="storage" class="form-label">Dung lượng</label>
+                        <select class="form-select" id="storage" name="storage">
+                            <option value="">-- Không chọn (bỏ qua) --</option>
+                            <option value="64GB">64GB</option>
+                            <option value="128GB">128GB</option>
+                            <option value="256GB">256GB</option>
+                            <option value="512GB">512GB</option>
+                            <option value="1TB">1TB</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Giá (đ)</label>
+                        <input 
+                            type="number" 
+                            class="form-control" 
+                            id="price" 
+                            name="price" 
+                            placeholder="VD: 25000000"
+                            min="0"
+                        >
+                        <small class="text-muted">Để trống nếu không muốn thêm biến thể ngay</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="stock" class="form-label">Tồn kho</label>
+                        <input 
+                            type="number" 
+                            class="form-control" 
+                            id="stock" 
+                            name="stock" 
+                            placeholder="VD: 50"
+                            min="0"
+                        >
+                    </div>
+
+                    <a href="index.php?url=product" class="btn btn-secondary">Hủy</a>
+                    <button type="submit" class="btn btn-primary">Lưu sản phẩm</button>
                 </form>
             </div>
         </div>

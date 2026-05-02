@@ -49,14 +49,14 @@ class ProductController extends Controller {
         }
 
         try {
-            // 1. Lấy dữ liệu từ form
+            // ✅ BƯỚC 1: Lấy dữ liệu sản phẩm từ form
             $name = trim($_POST['name'] ?? '');
             $sku = trim($_POST['sku'] ?? '');
             $description = $_POST['description'] ?? '';
             $category_id = (int)($_POST['category_id'] ?? 0);
             $supplier_id = (int)($_POST['supplier_id'] ?? 0);
             
-            // 2. Validate dữ liệu
+            // ✅ BƯỚC 2: Validate dữ liệu sản phẩm
             if (empty($name) || empty($sku)) {
                 throw new Exception('Tên sản phẩm và SKU không được để trống');
             }
@@ -65,12 +65,12 @@ class ProductController extends Controller {
                 throw new Exception('Vui lòng chọn danh mục và nhà cung cấp');
             }
 
-            // 3. Kiểm tra SKU có bị trùng không
+            // ✅ BƯỚC 3: Kiểm tra SKU có bị trùng không
             if ($this->productModel->findBySKU($sku)) {
                 throw new Exception('SKU này đã tồn tại');
             }
 
-            // 4. Xử lý upload ảnh (nếu có)
+            // ✅ BƯỚC 4: Xử lý upload ảnh (nếu có)
             $image = '';
             if (!empty($_FILES['image']['name'])) {
                 $uploadDir = '../public/assets/images/products/';
@@ -80,10 +80,10 @@ class ProductController extends Controller {
 
                 $file = $_FILES['image'];
                 $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-                $allowedExt = ['jpg', 'jpeg', 'png', 'gif'];
+                $allowedExt = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
                 if (!in_array($ext, $allowedExt)) {
-                    throw new Exception('Chỉ hỗ trợ file jpg, jpeg, png, gif');
+                    throw new Exception('Chỉ hỗ trợ file jpg, jpeg, png, gif, webp');
                 }
 
                 $fileName = uniqid('product_') . '.' . $ext;
@@ -96,7 +96,7 @@ class ProductController extends Controller {
                 $image = $fileName;
             }
 
-            // 5. Lưu sản phẩm
+            // ✅ BƯỚC 5: Lưu sản phẩm vào database
             $productData = [
                 ':sku' => $sku,
                 ':name' => $name,
@@ -106,13 +106,38 @@ class ProductController extends Controller {
                 ':image' => $image
             ];
 
-            if ($this->productModel->create($productData)) {
-                $_SESSION['success_message'] = "Thêm sản phẩm '$name' thành công!";
-                header("Location: index.php?url=product");
-                exit;
-            } else {
+            if (!$this->productModel->create($productData)) {
                 throw new Exception('Không thể lưu sản phẩm');
             }
+
+            // ✅ BƯỚC 6: Lấy ID sản phẩm vừa tạo
+            $productId = $this->productModel->getLastId();
+
+            // ✅ BƯỚC 7: Nếu người dùng nhập giá → Tạo biến thể ban đầu
+            $color = trim($_POST['color'] ?? '');
+            $storage = trim($_POST['storage'] ?? '');
+            $price = (int)($_POST['price'] ?? 0);
+            $stock = (int)($_POST['stock'] ?? 0);
+
+            // Nếu có giá trị → Tạo biến thể
+            if (!empty($color) && !empty($storage) && $price > 0) {
+                $variantSku = $sku . '-' . strtoupper(substr($color, 0, 2));
+                $variantData = [
+                    ':product_id' => $productId,
+                    ':sku' => $variantSku,
+                    ':color' => $color,
+                    ':storage' => $storage,
+                    ':price' => $price,
+                    ':stock' => $stock,
+                    ':image' => ''
+                ];
+                $this->variantModel->create($variantData);
+            }
+
+            // ✅ BƯỚC 8: Chuyển hướng tới trang edit để thêm biến thể tiếp
+            $_SESSION['success_message'] = "Thêm sản phẩm '$name' thành công!";
+            header("Location: index.php?url=product/edit&id=" . $productId);
+            exit;
 
         } catch (Exception $e) {
             $_SESSION['old_input'] = $_POST;
@@ -137,6 +162,100 @@ class ProductController extends Controller {
             'suppliers'  => $this->supplierModel->getAll()
         ];
         $this->view('products/edit', $data);
+    }
+
+    // ✅ THÊM METHOD UPDATE
+    public function update() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header("Location: index.php?url=product");
+            exit;
+        }
+
+        try {
+            // ✅ BƯỚC 1: Lấy dữ liệu từ form
+            $id = (int)($_POST['id'] ?? 0);
+            $name = trim($_POST['name'] ?? '');
+            $description = $_POST['description'] ?? '';
+            $category_id = (int)($_POST['category_id'] ?? 0);
+            $supplier_id = (int)($_POST['supplier_id'] ?? 0);
+
+            // ✅ BƯỚC 2: Validate
+            if ($id <= 0) {
+                throw new Exception('ID sản phẩm không hợp lệ');
+            }
+
+            if (empty($name)) {
+                throw new Exception('Tên sản phẩm không được để trống');
+            }
+
+            if ($category_id <= 0 || $supplier_id <= 0) {
+                throw new Exception('Vui lòng chọn danh mục và nhà cung cấp');
+            }
+
+            // ✅ BƯỚC 3: Lấy sản phẩm cũ để kiểm tra
+            $product = $this->productModel->getByID($id);
+            if (!$product) {
+                throw new Exception('Sản phẩm không tồn tại');
+            }
+
+            // ✅ BƯỚC 4: Xử lý upload ảnh (nếu có)
+            $image = $product['image'];  // Giữ ảnh cũ mặc định
+            if (!empty($_FILES['image']['name'])) {
+                $uploadDir = '../public/assets/images/products/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                $file = $_FILES['image'];
+                $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                $allowedExt = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+                if (!in_array($ext, $allowedExt)) {
+                    throw new Exception('Chỉ hỗ trợ file jpg, jpeg, png, gif, webp');
+                }
+
+                $fileName = uniqid('product_') . '.' . $ext;
+                $filePath = $uploadDir . $fileName;
+
+                if (!move_uploaded_file($file['tmp_name'], $filePath)) {
+                    throw new Exception('Lỗi upload file');
+                }
+
+                // Xóa ảnh cũ nếu có
+                if (!empty($product['image'])) {
+                    $oldPath = '../public/assets/images/products/' . $product['image'];
+                    if (file_exists($oldPath)) {
+                        @unlink($oldPath);
+                    }
+                }
+
+                $image = $fileName;
+            }
+
+            // ✅ BƯỚC 5: Cập nhật sản phẩm
+            $updateData = [
+                ':id' => $id,
+                ':name' => $name,
+                ':description' => $description,
+                ':category_id' => $category_id,
+                ':supplier_id' => $supplier_id,
+                ':image' => $image
+            ];
+
+            if (!$this->productModel->update($updateData)) {
+                throw new Exception('Không thể cập nhật sản phẩm');
+            }
+
+            // ✅ BƯỚC 6: Thành công - quay lại trang edit
+            $_SESSION['success_message'] = "Cập nhật sản phẩm thành công!";
+            header("Location: index.php?url=product/edit&id=" . $id);
+            exit;
+
+        } catch (Exception $e) {
+            $_SESSION['error_message'] = $e->getMessage();
+            header("Location: index.php?url=product/edit&id=" . ($_POST['id'] ?? 0));
+            exit;
+        }
     }
 
     // ============================================================

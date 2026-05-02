@@ -13,7 +13,7 @@
             </a>
         </div>
         <div class="card-body-ajax">
-            <form action="index.php?controller=product&action=update" method="POST" enctype="multipart/form-data">
+            <form action="index.php?url=product/update" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="id" value="<?php echo $product['id']; ?>">
 
                 <div class="row g-3">
