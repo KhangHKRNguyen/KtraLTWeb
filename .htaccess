@@ -1,0 +1,10 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine on
+    
+    # Chặn truy cập trực tiếp vào các thư mục hệ thống
+    RewriteRule ^(app|core|config)/ - [F,L]
+
+    # Tự động đẩy mọi request vào thư mục public
+    RewriteRule ^$ public/ [L]
+    RewriteRule (.*) public/$1 [L]
+</IfModule>

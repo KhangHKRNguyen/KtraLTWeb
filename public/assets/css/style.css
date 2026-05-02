@@ -1,0 +1,638 @@
+/* File: assets/css/style.minimal.css */
+
+:root {
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+    --dark-color: #1f2937;
+    --light-gray: #f9fafb;
+    --border-color: #e5e7eb;
+
+    /* TỐI GIẢN: Loại bỏ hoàn toàn các biến shadow */
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* TỐI GIẢN: Bỏ gradient, sử dụng màu nền phẳng, sáng */
+    background: var(--light-gray);
+    min-height: 100vh;
+    padding: 20px 0;
+}
+
+/* Container chính */
+.main-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header Card */
+.page-header {
+    background: white;
+    border-radius: 12px;
+    padding: 24px 32px;
+    margin-bottom: 24px;
+    /* TỐI GIẢN: Thay shadow bằng border */
+    border: 1px solid var(--border-color);
+}
+
+.page-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--dark-color);
+    margin: 0;
+}
+
+.page-header .breadcrumb {
+    background: none;
+    padding: 0;
+    margin: 8px 0 0 0;
+}
+
+/* Card chính */
+.modern-card {
+    background: white;
+    border-radius: 12px;
+    /* TỐI GIẢN: Thay shadow bằng border */
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    /* TỐI GIẢN: Chỉ transition border */
+    transition: border-color 0.3s ease;
+}
+
+.modern-card:hover {
+    /* TỐI GIẢN: Bỏ hiệu ứng transform và shadow, chỉ đổi màu border */
+    transform: none;
+    box-shadow: none;
+    border-color: var(--primary-color);
+}
+
+.card-header-modern {
+    /* TỐI GIẢN: Bỏ gradient, dùng nền trắng và viền dưới */
+    background: white;
+    color: var(--dark-color);
+    padding: 20px 32px;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header-modern h5 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.card-body-ajax {
+    position: relative;
+    min-height: 400px;
+    padding: 32px;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* TỐI GIẢN: Tăng độ mờ và bỏ hiệu ứng blur */
+    background: rgba(255, 255, 255, 0.95);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+    backdrop-filter: none;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #e5e7eb;
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Search Form */
+.search-form-modern {
+    background: var(--light-gray);
+    padding: 24px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.search-form-modern .form-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.search-form-modern .form-control {
+    border-radius: 6px;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.search-form-modern .form-control:focus {
+    border-color: var(--primary-color);
+    /* TỐI GIẢN: Bỏ shadow khi focus */
+    box-shadow: none;
+}
+
+/* Table Styles */
+.table-modern {
+    width: 100%;
+    /* TỐI GIẢN: Dùng kiểu bảng gộp viền truyền thống */
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin-bottom: 0;
+}
+
+.table-modern thead th {
+    background: var(--light-gray);
+    padding: 16px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dark-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.table-modern tbody tr {
+    background: white;
+    /* TỐI GIẢN: Bỏ shadow */
+    box-shadow: none;
+    /* TỐI GIẢN: Chuyển hiệu ứng sang background-color */
+    transition: background-color 0.3s ease;
+}
+
+.table-modern tbody tr:hover {
+    /* TỐI GIẢN: Bỏ transform/shadow, đổi màu nền khi hover */
+    transform: none;
+    box-shadow: none;
+    background-color: var(--light-gray);
+}
+
+.table-modern td {
+    padding: 16px 24px;
+    vertical-align: middle;
+    /* TỐI GIẢN: Thêm viền dưới cho mỗi hàng */
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table-modern .product-thumbnail {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    /* TỐI GIẢN: Bỏ shadow */
+    box-shadow: none;
+    border: 1px solid var(--border-color);
+}
+
+.table-modern .product-sku {
+    font-family: monospace;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.table-modern .product-name {
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.table-modern .price-badge {
+    background: none;
+    color: var(--primary-color);
+    padding: 0;
+    /* Giữ padding 0 nếu muốn căn chỉnh nội dung */
+    border-radius: 0;
+    font-size: 14px;
+    font-weight: 600;
+
+    /* Thêm các thuộc tính này */
+    display: inline-block;
+    /* Cần thiết để min-width hoạt động */
+    min-width: 70px;
+    /* Đặt chiều rộng tối thiểu */
+    text-align: left;
+    /* Căn chỉnh lại text nếu cần (mặc định) */
+}
+
+.table-modern .stock-badge {
+    /* TỐI GIẢN: Bỏ nền, chỉ hiện màu chữ */
+    background: none;
+    color: var(--success-color);
+    padding: 0;
+    border-radius: 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-action:hover {
+    /* TỐI GIẢN: Bỏ hiệu ứng transform */
+    transform: none;
+}
+
+/* Buttons (Giữ nguyên) */
+.btn-primary-modern {
+    background: var(--primary-color);
+    border: none;
+    color: white;
+}
+
+.btn-primary-modern:hover {
+    background: var(--primary-hover);
+}
+
+/* ... (Các button khác giữ nguyên) ... */
+.btn-success-modern {
+    background: var(--success-color);
+    border: none;
+    color: white;
+}
+
+.btn-success-modern:hover {
+    background: #059669;
+}
+
+.btn-warning-modern {
+    background: var(--warning-color);
+    border: none;
+    color: white;
+}
+
+.btn-warning-modern:hover {
+    background: #d97706;
+}
+
+.btn-danger-modern {
+    background: var(--danger-color);
+    border: none;
+    color: white;
+}
+
+.btn-danger-modern:hover {
+    background: #dc2626;
+}
+
+.btn-info-modern {
+    background: #06b6d4;
+    border: none;
+    color: white;
+}
+
+.btn-info-modern:hover {
+    background: #0891b2;
+}
+
+/* Pagination */
+.pagination-modern {
+    margin-top: 24px;
+}
+
+.pagination-modern .page-link {
+    border: none;
+    color: var(--dark-color);
+    padding: 8px 16px;
+    border-radius: 6px;
+    margin: 0 4px;
+    transition: all 0.3s ease;
+}
+
+.pagination-modern .page-link:hover {
+    background: var(--light-gray);
+    color: var(--primary-color);
+}
+
+.pagination-modern .page-item.active .page-link {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Toast Notifications */
+.toast-modern {
+    border-radius: 8px;
+    /* TỐI GIẢN: Thay shadow bằng border */
+    box-shadow: none;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.toast-modern .toast-body {
+    padding: 16px;
+    font-weight: 500;
+}
+
+/* Empty State (Giữ nguyên) */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+/* ... */
+
+
+/* Footer */
+footer {
+    background: white;
+    border-radius: 12px;
+    /* TỐI GIẢN: Thay shadow bằng border */
+    border: 1px solid var(--border-color);
+    margin-top: 32px;
+    padding: 20px;
+    text-align: center;
+    color: #6b7280;
+}
+
+/* Responsive (Giữ nguyên) */
+@media (max-width: 768px) {
+    .card-body-ajax {
+        padding: 16px;
+    }
+
+    .search-form-modern {
+        padding: 16px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .page-header h1 {
+        font-size: 22px;
+    }
+}
+
+/* Animations (Giữ nguyên) */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* 🌙 DARK MODE STYLES */
+/* 🌙 Dark mode tổng thể */
+body.dark-mode {
+    background-color: #111827;
+    color: #f3f4f6;
+}
+
+.dark-mode .modern-card,
+.dark-mode .card,
+.dark-mode .table,
+.dark-mode .modal-content {
+    background-color: #1f2937;
+    color: #f9fafb;
+    border-color: #374151;
+}
+
+.dark-mode .table th,
+.dark-mode .table td {
+    border-color: #374151;
+}
+
+.dark-mode .form-control,
+.dark-mode .form-select {
+    background-color: #374151;
+    color: #f3f4f6;
+    border-color: #4b5563;
+}
+
+.dark-mode .btn-light {
+    background-color: #4b5563;
+    color: #f3f4f6;
+    border-color: #4b5563;
+}
+
+.dark-mode .btn-light:hover {
+    background-color: #6b7280;
+}
+
+.dark-mode footer {
+    background-color: #1f2937;
+    color: #d1d5db;
+}
+
+.dark-mode hr {
+    border-color: #374151 !important;
+}
+
+/* CSS dark mode tổng thể */
+body.dark-mode {
+    background-color: #0f172a;
+    /* Nền tổng thể */
+    color: #e2e8f0;
+    /* Màu chữ chính */
+}
+
+/* Card, header, table... */
+body.dark-mode .card,
+body.dark-mode .table,
+body.dark-mode .form-control,
+body.dark-mode .input-group,
+body.dark-mode .dropdown-menu {
+    background-color: #1e293b;
+    /* Màu nền tối */
+    color: #f1f5f9;
+    border-color: #334155;
+}
+
+/* Các input */
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background-color: #1e293b;
+    color: #f1f5f9;
+    border: 1px solid #334155;
+}
+
+/* Các button */
+body.dark-mode .btn-primary {
+    background-color: #2563eb;
+    border-color: #1d4ed8;
+}
+
+body.dark-mode .btn-success {
+    background-color: #16a34a;
+    border-color: #15803d;
+}
+
+body.dark-mode .btn-danger {
+    background-color: #dc2626;
+    border-color: #b91c1c;
+}
+
+/* Bảng */
+body.dark-mode table {
+    color: #f8fafc;
+}
+
+body.dark-mode thead {
+    background-color: #1e293b;
+}
+
+body.dark-mode tbody tr {
+    background-color: #0f172a;
+    border-color: #334155;
+}
+
+/* Các ô tìm kiếm */
+body.dark-mode input::placeholder {
+    color: #94a3b8;
+}
+
+
+
+/* TỐI GIẢN: Xóa custom scrollbar, dùng mặc định của hệ điều hành */
+/*
+::-webkit-scrollbar {
+    width: 10px;
+}
+...
+*/
+
+/* Color Circle for Variants */
+.color-circle {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+    /* TỐI GIẢN: Bỏ shadow, thêm border để dễ thấy màu trắng */
+    box-shadow: none;
+    border: 1px solid var(--border-color);
+}
+
+/* THÊM CSS NÀY VÀO FILE CSS CỦA BẠN */
+
+/* Highlight existing variant when duplicate detected */
+.variant-highlight {
+    background-color: #fef3c7 !important;
+    /* Yellow-100 */
+    border-left: 4px solid #f59e0b !important;
+    /* Amber-500 */
+    transition: all 0.3s ease;
+    animation: pulseHighlight 1s ease-in-out 2;
+}
+
+@keyframes pulseHighlight {
+
+    0%,
+    100% {
+        background-color: #fef3c7;
+        transform: scale(1);
+    }
+
+    50% {
+        background-color: #fde68a;
+        /* Yellow-200 */
+        transform: scale(1.01);
+    }
+}
+
+/* Smooth transition when highlight is removed */
+.variant-highlight td {
+    transition: background-color 0.5s ease;
+}
+
+/* Optional: Add a glow effect */
+.variant-highlight {
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+}
+
+/* For fade-in animation of new variants */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Success highlight for updated variants */
+.table-success {
+    background-color: #d1fae5 !important;
+    /* Green-100 */
+    transition: background-color 2s ease;
+}
+
+.table-success td {
+    transition: background-color 2s ease;
+}
+
+.footer-member {
+    background: var(--light-gray);
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    /* TỐI GIẢN: Chỉ transition border */
+    transition: border-color 0.3s ease;
+    height: 100%;
+    text-align: center;
+}
+
+.footer-member:hover {
+    /* TỐI GIẢN: Bỏ transform và shadow */
+    transform: none;
+    box-shadow: none;
+    border-color: var(--primary-color);
+}
+
+.footer-member h6 {
+    margin: 0 0 4px 0;
+    font-weight: 600;
+    color: var(--dark-color);
+    font-size: 0.9rem;
+}
+
+.footer-member p {
+    font-size: 0.8rem;
+    margin-bottom: 0;
+}

@@ -1,0 +1,27 @@
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+require_once '../config/config.php';
+require_once '../app/helpers/utils.php';
+require_once '../vendor/autoload.php';
+session_start();
+
+// Bộ tự động nạp Class (Autoload)
+spl_autoload_register(function($className) {
+    // Tìm trong thư mục core
+    if (file_exists("../core/$className.php")) {
+        require_once "../core/$className.php";
+    }
+    // Tìm trong thư mục controllers
+    elseif (file_exists("../app/controllers/$className.php")) {
+        require_once "../app/controllers/$className.php";
+    }
+    // Tìm trong thư mục models
+    elseif (file_exists("../app/models/$className.php")) {
+        require_once "../app/models/$className.php";
+    }
+});
+
+// Khởi tạo đối tượng App để bắt đầu Routing
+$app = new App();
+?>
