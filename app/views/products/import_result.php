@@ -17,16 +17,16 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0">
                         <li class="breadcrumb-item"><a href="index.php">Trang chủ</a></li>
-                        <li class="breadcrumb-item"><a href="index.php?controller=product&action=index">Sản phẩm</a></li>
+                        <li class="breadcrumb-item"><a href="index.php?url=product/index">Sản phẩm</a></li>
                         <li class="breadcrumb-item active">Kết quả Import</li>
                     </ol>
                 </nav>
             </div>
             <div>
-                <a href="index.php?controller=product&action=import" class="btn btn-info-modern">
+                <a href="index.php?url=product/import" class="btn btn-info-modern">
                     <i class="fas fa-redo"></i> Import lại
                 </a>
-                <a href="index.php?controller=product&action=index" class="btn btn-primary-modern">
+                <a href="index.php?url=product/index" class="btn btn-primary-modern">
                     <i class="fas fa-list"></i> Xem sản phẩm
                 </a>
             </div>
@@ -195,10 +195,10 @@
                         Tất cả dữ liệu đã được import vào hệ thống một cách hoàn hảo.
                     </p>
                     <div class="d-flex justify-content-center gap-2">
-                        <a href="index.php?controller=product&action=index" class="btn btn-primary-modern">
+                        <a href="index.php?url=product/index" class="btn btn-primary-modern">
                             <i class="fas fa-list"></i> Xem danh sách sản phẩm
                         </a>
-                        <a href="index.php?controller=product&action=import" class="btn btn-info-modern">
+                        <a href="index.php?url=product/import" class="btn btn-info-modern">
                             <i class="fas fa-upload"></i> Import thêm
                         </a>
                     </div>
@@ -216,10 +216,10 @@
                     Không thể hoàn tất quá trình import. Vui lòng kiểm tra file và thử lại.
                 </p>
                 <div class="d-flex justify-content-center gap-2">
-                    <a href="index.php?controller=product&action=import" class="btn btn-primary-modern">
+                    <a href="index.php?url=product/import" class="btn btn-primary-modern">
                         <i class="fas fa-redo"></i> Thử lại
                     </a>
-                    <a href="index.php?controller=product&action=index" class="btn btn-secondary">
+                    <a href="index.php?url=product/index" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Quay lại
                     </a>
                 </div>

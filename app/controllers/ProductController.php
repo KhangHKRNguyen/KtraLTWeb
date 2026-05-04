@@ -405,7 +405,9 @@ class ProductController extends Controller {
     // ============================================================
     // EXPORT & IMPORT (EXCEL)
     // ============================================================
-
+    public function import() {
+        $this->view('products/import', ['page_title' => 'Import sản phẩm từ Excel']);
+    }
     public function exportTemplate() {
         // Tắt hiển thị lỗi để tránh làm hỏng file Excel
         error_reporting(0);
@@ -449,57 +451,104 @@ class ProductController extends Controller {
         exit;
     }
 
-    public function exportProducts() {
+
+
+public function exportProducts() {
+    error_reporting(0);
+    ini_set('display_errors', 0);
+    while (ob_get_level()) ob_end_clean();
+
+    try {
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        
+        $sheet->setTitle('Danh sach san pham');
+
         // Header
-        $headers = ['ID', 'Mã SKU', 'Tên sản phẩm', 'Danh mục', 'Nhà cung cấp', 'Màu sắc', 'Dung lượng', 'Giá bán', 'Tồn kho'];
-        $column = 'A';
-        foreach ($headers as $header) {
-            $sheet->setCellValue($column . '1', $header);
-            $sheet->getStyle($column . '1')->getFont()->setBold(true);
-            $column++;
+        $headers = ['ID', 'Mã SKU', 'Tên sản phẩm', 'Danh mục', 'Nhà cung cấp', 
+                    'Màu sắc', 'Dung lượng', 'SKU biến thể', 'Giá bán (VND)', 'Tồn kho', 'Ngày tạo'];
+        foreach ($headers as $i => $label) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValue($col . '1', $label);
+            $sheet->getStyle($col . '1')->getFont()->setBold(true);
         }
+        $sheet->getRowDimension(1)->setRowHeight(25);
 
-        // Lấy dữ liệu (Sử dụng Query trực tiếp hoặc qua Model)
+        // Dữ liệu
+        // Header khớp với template import (9 cột A-I)
+$headers = [
+    'A' => 'Mã SKU',
+    'B' => 'Tên sản phẩm',
+    'C' => 'ID Danh mục',
+    'D' => 'ID Nhà cung cấp',
+    'E' => 'Mô tả',
+    'F' => 'Màu sắc',
+    'G' => 'Dung lượng',
+    'H' => 'Giá',
+    'I' => 'Tồn kho',
+];
+foreach ($headers as $col => $label) {
+    $sheet->setCellValue($col . '1', $label);
+    $sheet->getStyle($col . '1')->getFont()->setBold(true);
+}
+
+        // Dữ liệu — mỗi biến thể 1 dòng, dùng import lại được
         $products = $this->productModel->getAllForExport();
-
         $rowNum = 2;
         foreach ($products as $p) {
-            $sheet->setCellValue('A' . $rowNum, $p['id']);
-            $sheet->setCellValue('B' . $rowNum, $p['sku']);
-            $sheet->setCellValue('C' . $rowNum, $p['name']);
-            $sheet->setCellValue('D' . $rowNum, $p['category_name']);
-            $sheet->setCellValue('E' . $rowNum, $p['supplier_name']);
-            $sheet->setCellValue('F' . $rowNum, $p['color']);
-            $sheet->setCellValue('G' . $rowNum, $p['storage']);
-            $sheet->setCellValue('H' . $rowNum, $p['price']);
-            $sheet->setCellValue('I' . $rowNum, $p['stock']);
+            $sheet->setCellValue('A' . $rowNum, $p['sku']);           // SKU sản phẩm (không phải SKU biến thể)
+            $sheet->setCellValue('B' . $rowNum, $p['name']);
+            $sheet->setCellValue('C' . $rowNum, $p['category_id']);   // ID để import lại được
+            $sheet->setCellValue('D' . $rowNum, $p['supplier_id']);   // ID để import lại được
+            $sheet->setCellValue('E' . $rowNum, $p['description'] ?? '');
+            $sheet->setCellValue('F' . $rowNum, $p['color'] ?? '');
+            $sheet->setCellValue('G' . $rowNum, $p['storage'] ?? '');
+            $sheet->setCellValue('H' . $rowNum, $p['price'] ?? 0);
+            $sheet->setCellValue('I' . $rowNum, $p['stock'] ?? 0);
             $rowNum++;
         }
 
-        $filename = 'danh_sach_san_pham_' . date('Ymd_His') . '.xlsx';
-        $path = 'exports/' . $filename;
-        
-        if (!is_dir('exports')) mkdir('exports', 0777, true);
-        
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $writer->save($path);
+        foreach (range('A', 'I') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        $sheet->freezePane('A2');
+        if ($rowNum > 2) $sheet->setAutoFilter('A1:I' . ($rowNum - 1));
 
-        // Trả về view thông báo tải xuống
-        $this->view('products/export_success', ['filename' => $filename]);
-    }   
+        // Stream thẳng xuống trình duyệt — KHÔNG save ra file
+        $filename = 'danh_sach_san_pham_' . date('Ymd_His') . '.xlsx';
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: max-age=0, no-cache, no-store, must-revalidate');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save('php://output');  // ← stream trực tiếp, không cần view
+
+    } catch (Exception $e) {
+        http_response_code(500);
+        die('Lỗi xuất Excel: ' . $e->getMessage());
+    }
+    exit;
+}
 
     public function importProcess() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_FILES['excel_file'])) {
-            header("Location: index.php?controller=product");
+            header("Location: index.php?url=product/import");
             exit;
         }
 
         $file = $_FILES['excel_file']['tmp_name'];
         $db = $this->productModel->getDB();
-        $logs = [];
+        
+        $stats = [
+            'total_rows' => 0,
+            'products_created' => 0,
+            'products_updated' => 0,
+            'variants_created' => 0,
+            'variants_updated' => 0,
+            'skipped_rows' => 0,
+            'errors' => []
+        ];
 
         try {
             $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
@@ -509,6 +558,7 @@ class ProductController extends Controller {
 
             // Bỏ qua dòng đầu tiên (header)
             for ($i = 1; $count = count($data), $i < $count; $i++) {
+                $rowNum = $i + 1;
                 $sku         = trim($data[$i][0] ?? '');
                 $name        = trim($data[$i][1] ?? '');
                 $categoryId  = (int)($data[$i][2] ?? 0);
@@ -519,58 +569,87 @@ class ProductController extends Controller {
                 $price       = (float)($data[$i][7] ?? 0);
                 $stock       = (int)($data[$i][8] ?? 0);
 
-                if (empty($sku) || empty($name)) continue;
+                $stats['total_rows']++;
 
-                // 1. Kiểm tra/Tạo sản phẩm
-                $existingProduct = $this->productModel->findBySKU($sku);
-                if ($existingProduct) {
-                    $productId = $existingProduct['id'];
-                } else {
-                    $productData = [
-                        ':sku' => $sku,
-                        ':name' => $name,
-                        ':description' => $description,
-                        ':category_id' => $categoryId,
-                        ':supplier_id' => $supplierId,
-                        ':image' => '' // Mặc định trống khi import
+                if (empty($sku) || empty($name)) {
+                    $stats['skipped_rows']++;
+                    $stats['errors'][] = [
+                        'row' => $rowNum,
+                        'data' => compact('sku', 'name'),
+                        'message' => 'SKU hoặc Tên sản phẩm không được để trống'
                     ];
-                    $this->productModel->create($productData);
-                    $productId = $this->productModel->getLastId();
-                    $logs[] = "Dòng $i: Tạo mới sản phẩm $name (SKU: $sku).";
+                    continue;
                 }
 
-                // 2. Kiểm tra biến thể đã tồn tại chưa (Dựa trên Model ProductVariant)
-                // Sử dụng hàm variantExists bạn đã viết trong ProductVariant model
-                $isVariantExist = $this->variantModel->variantExists($productId, $color, $storage);
+                try {
+                    // 1. Kiểm tra/Tạo sản phẩm
+                    $existingProduct = $this->productModel->findBySKU($sku);
+                    if ($existingProduct) {
+                        $productId = $existingProduct['id'];
+                        $stats['products_updated']++;
+                    } else {
+                        $productData = [
+                            ':sku' => $sku,
+                            ':name' => $name,
+                            ':description' => $description,
+                            ':category_id' => $categoryId,
+                            ':supplier_id' => $supplierId,
+                            ':image' => ''
+                        ];
+                        $this->productModel->create($productData);
+                        $productId = $this->productModel->getLastId();
+                        $stats['products_created']++;
+                    }
 
-                if (!$isVariantExist) {
-                    $variantData = [
-                        ':product_id' => $productId,
-                        ':sku'        => $sku . '-' . strtoupper($color), // Tạo SKU biến thể tạm thời
-                        ':color'      => $color,
-                        ':storage'    => $storage,
-                        ':price'      => $price,
-                        ':stock'      => $stock,
-                        ':image'      => ''
+                    // 2. Kiểm tra biến thể đã tồn tại chưa
+                    $isVariantExist = $this->variantModel->variantExists($productId, $color, $storage);
+
+                    if (!$isVariantExist) {
+                        $variantData = [
+                            ':product_id' => $productId,
+                            ':sku'        => $sku . '-' . strtoupper($color) . '-' . strtoupper(str_replace(' ', '', $storage)),
+                            ':color'      => $color,
+                            ':storage'    => $storage,
+                            ':price'      => $price,
+                            ':stock'      => $stock,
+                            ':image'      => ''
+                        ];
+                        $this->variantModel->create($variantData);
+                        $stats['variants_created']++;
+                    } else {
+                        $stats['variants_updated']++;
+                    }
+                } catch (Exception $e) {
+                    $stats['skipped_rows']++;
+                    $stats['errors'][] = [
+                        'row' => $rowNum,
+                        'data' => compact('sku', 'name'),
+                        'message' => $e->getMessage()
                     ];
-                    $this->variantModel->create($variantData);
-                    $logs[] = "Dòng $i: Thêm biến thể ($color - $storage) cho SKU $sku.";
-                } else {
-                    $logs[] = "Dòng $i: Biến thể ($color - $storage) đã tồn tại, bỏ qua.";
                 }
             }
 
             $db->commit();
-            $_SESSION['success_message'] = "Import hoàn tất!";
-            $_SESSION['import_logs'] = $logs;
+            $_SESSION['import_stats'] = $stats;
+            header("Location: index.php?url=product/importResult");
 
         } catch (Exception $e) {
-            if ($db->beginTransaction()) $db->rollBack(); // Kiểm tra nếu đang trong transaction thì rollback
+            if ($db->inTransaction()) $db->rollBack();
             $_SESSION['error_message'] = "Lỗi Import: " . $e->getMessage();
+            header("Location: index.php?url=product/import");
         }
-
-        header("Location: index.php?controller=product");
         exit;
+    }
+
+    public function importResult() {
+        $stats = $_SESSION['import_stats'] ?? null;
+        unset($_SESSION['import_stats']);
+        
+        $data = [
+            'page_title' => 'Kết quả Import',
+            'stats' => $stats
+        ];
+        $this->view('products/import_result', $data);
     }
 
     // ============================================================

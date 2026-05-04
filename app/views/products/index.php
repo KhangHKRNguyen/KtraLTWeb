@@ -31,12 +31,14 @@
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="exportDropdown">
                     <li>
-                        <a class="dropdown-item" href="index.php?url=product/export_template">
+                        <a class="dropdown-item" href="index.php?url=product/exportTemplate">
+
                             <i class="fas fa-file-alt me-2 text-secondary"></i> Tải Template
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item" href="index.php?url=product/export_products">
+                        <a class="dropdown-item" href="index.php?url=product/exportProducts">
+
                             <i class="fas fa-file-excel me-2 text-success"></i> Xuất toàn bộ sản phẩm
                         </a>
                     </li>

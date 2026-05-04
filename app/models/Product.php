@@ -168,7 +168,8 @@ class Product
     }
 
     public function getAllForExport() {
-        $sql = "SELECT p.id, p.sku, p.name, c.name as category_name, s.name as supplier_name,
+        $sql = "SELECT p.id, p.sku, p.name, p.description, p.category_id, p.supplier_id,
+                    c.name as category_name, s.name as supplier_name,
                     v.color, v.storage, v.price, v.stock
                 FROM {$this->table} p
                 LEFT JOIN categories c ON p.category_id = c.id
