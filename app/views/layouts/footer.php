@@ -3,7 +3,7 @@
         <div class="row justify-content-center g-4 mb-4">
             <div class="col-12 text-center">
                 <h5 style="color: var(--dark-color); font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-                    Banking Academy - Group 7
+                    Banking Academy - Group 1
                 </h5>
             </div>
             
@@ -47,7 +47,7 @@
         <hr style="border-color: var(--border-color);">
         
         <div class="text-center mt-3" style="color: #6b7280;">
-            &copy; 2025 Banking Academy Group 7 - All Rights Reserved
+            &copy; 2026 Banking Academy Group 1 - All Rights Reserved
         </div>
     </div>
 </footer>
