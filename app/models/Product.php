@@ -151,7 +151,7 @@ class Product
 
     public function update($data) {
         $query = "UPDATE {$this->table}
-                  SET sku = :sku, name = :name, description = :description, 
+                  SET name = :name, description = :description, 
                       category_id = :category_id, supplier_id = :supplier_id, 
                       image = :image, updated_at = NOW()
                   WHERE id = :id";

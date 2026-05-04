@@ -6,7 +6,7 @@ class App {
     protected $params = [];                     // Tham số mặc định
 
     public function __construct() {
-        $url = $this->parseUrl();
+        $url = $this->parseUrl(); // ví dụ URL: ?url=product ->parseUrl() trả về mảng array['product']
 
         // 1. Xử lý Controller
         if (isset($url[0]) && file_exists("../app/controllers/" . ucfirst($url[0]) . "Controller.php")) {

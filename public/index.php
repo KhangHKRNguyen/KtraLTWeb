@@ -23,5 +23,5 @@ spl_autoload_register(function($className) {
 });
 
 // Khởi tạo đối tượng App để bắt đầu Routing
-$app = new App();
+$app = new App();// <- app sẽ tự động gọi controller+Action phù hợp
 ?>

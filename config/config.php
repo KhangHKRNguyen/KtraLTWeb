@@ -3,5 +3,5 @@ define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'product_management');
-define('URLROOT', 'http://localhost/KT2');
+define('URLROOT', 'http://localhost/KtraLTWeb');
 ?>
