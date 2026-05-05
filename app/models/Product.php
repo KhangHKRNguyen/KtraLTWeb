@@ -118,7 +118,8 @@ class Product
         if (!empty($having_clauses)) {
             $query .= " HAVING " . implode(' AND ', $having_clauses);
         }
-
+  $limit = (int)$limit;
+    $offset = (int)$offset;
         $query .= " ORDER BY p.created_at DESC LIMIT $limit OFFSET $offset";
 
         $stmt = $this->db->query($query, $params);
