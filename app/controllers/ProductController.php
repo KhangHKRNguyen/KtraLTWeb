@@ -49,14 +49,14 @@ class ProductController extends Controller {
         }
 
         try {
-            // ✅ BƯỚC 1: Lấy dữ liệu sản phẩm từ form
+            // BƯỚC 1: Lấy dữ liệu sản phẩm từ form
             $name = trim($_POST['name'] ?? '');
             $sku = trim($_POST['sku'] ?? '');
             $description = $_POST['description'] ?? '';
             $category_id = (int)($_POST['category_id'] ?? 0);
             $supplier_id = (int)($_POST['supplier_id'] ?? 0);
             
-            // ✅ BƯỚC 2: Validate dữ liệu sản phẩm
+            // BƯỚC 2: Validate dữ liệu sản phẩm
             if (empty($name) || empty($sku)) {
                 throw new Exception('Tên sản phẩm và SKU không được để trống');
             }
@@ -65,12 +65,12 @@ class ProductController extends Controller {
                 throw new Exception('Vui lòng chọn danh mục và nhà cung cấp');
             }
 
-            // ✅ BƯỚC 3: Kiểm tra SKU có bị trùng không
+            // BƯỚC 3: Kiểm tra SKU có bị trùng không
             if ($this->productModel->findBySKU($sku)) {
                 throw new Exception('SKU này đã tồn tại');
             }
 
-            // ✅ BƯỚC 4: Xử lý upload ảnh (nếu có)
+            // BƯỚC 4: Xử lý upload ảnh (nếu có)
             $image = '';
             if (!empty($_FILES['image']['name'])) {
                 $uploadDir = '../public/assets/images/products/';
@@ -96,7 +96,7 @@ class ProductController extends Controller {
                 $image = $fileName;
             }
 
-            // ✅ BƯỚC 5: Lưu sản phẩm vào database
+            // BƯỚC 5: Lưu sản phẩm vào database
             $productData = [
                 ':sku' => $sku,
                 ':name' => $name,
@@ -110,10 +110,10 @@ class ProductController extends Controller {
                 throw new Exception('Không thể lưu sản phẩm');
             }
 
-            // ✅ BƯỚC 6: Lấy ID sản phẩm vừa tạo
+            // BƯỚC 6: Lấy ID sản phẩm vừa tạo
             $productId = $this->productModel->getLastId();
 
-            // ✅ BƯỚC 7: Nếu người dùng nhập giá → Tạo biến thể ban đầu
+            // BƯỚC 7: Nếu người dùng nhập giá → Tạo biến thể ban đầu
             $color = trim($_POST['color'] ?? '');
             $storage = trim($_POST['storage'] ?? '');
             $price = (int)($_POST['price'] ?? 0);
@@ -134,7 +134,7 @@ class ProductController extends Controller {
                 $this->variantModel->create($variantData);
             }
 
-            // ✅ BƯỚC 8: Chuyển hướng tới trang edit để thêm biến thể tiếp
+            // BƯỚC 8: Chuyển hướng tới trang edit để thêm biến thể tiếp
             $_SESSION['success_message'] = "Thêm sản phẩm '$name' thành công!";
             header("Location: index.php?url=product/edit&id=" . $productId);
             exit;
