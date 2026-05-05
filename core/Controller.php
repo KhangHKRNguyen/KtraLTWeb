@@ -1,6 +1,6 @@
 <?php
 // core/Controller.php
-class Controller {
+abstract class Controller {
     public function model($model) {
     if (class_exists($model)) {
         return new $model();

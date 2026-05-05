@@ -1,7 +1,8 @@
 <?php
 // app/controllers/ProductController.php
+require_once '../app/interfaces/CrudInterface.php';
 
-class ProductController extends Controller {
+class ProductController extends Controller implements CrudInterface {
     private $productModel;
     private $categoryModel;
     private $supplierModel;
@@ -164,7 +165,7 @@ class ProductController extends Controller {
         $this->view('products/edit', $data);
     }
 
-    // ✅ THÊM METHOD UPDATE
+    // THÊM METHOD UPDATE
     public function update() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header("Location: index.php?url=product");
@@ -172,14 +173,14 @@ class ProductController extends Controller {
         }
 
         try {
-            // ✅ BƯỚC 1: Lấy dữ liệu từ form
+            // BƯỚC 1: Lấy dữ liệu từ form
             $id = (int)($_POST['id'] ?? 0);
             $name = trim($_POST['name'] ?? '');
             $description = $_POST['description'] ?? '';
             $category_id = (int)($_POST['category_id'] ?? 0);
             $supplier_id = (int)($_POST['supplier_id'] ?? 0);
 
-            // ✅ BƯỚC 2: Validate
+            // BƯỚC 2: Validate
             if ($id <= 0) {
                 throw new Exception('ID sản phẩm không hợp lệ');
             }
@@ -192,13 +193,13 @@ class ProductController extends Controller {
                 throw new Exception('Vui lòng chọn danh mục và nhà cung cấp');
             }
 
-            // ✅ BƯỚC 3: Lấy sản phẩm cũ để kiểm tra
+            // BƯỚC 3: Lấy sản phẩm cũ để kiểm tra
             $product = $this->productModel->getByID($id);
             if (!$product) {
                 throw new Exception('Sản phẩm không tồn tại');
             }
 
-            // ✅ BƯỚC 4: Xử lý upload ảnh (nếu có)
+            // BƯỚC 4: Xử lý upload ảnh (nếu có)
             $image = $product['image'];  // Giữ ảnh cũ mặc định
             if (!empty($_FILES['image']['name'])) {
                 $uploadDir = '../public/assets/images/products/';
@@ -232,7 +233,7 @@ class ProductController extends Controller {
                 $image = $fileName;
             }
 
-            // ✅ BƯỚC 5: Cập nhật sản phẩm
+            // BƯỚC 5: Cập nhật sản phẩm
             $updateData = [
                 ':id' => $id,
                 ':name' => $name,
@@ -246,7 +247,7 @@ class ProductController extends Controller {
                 throw new Exception('Không thể cập nhật sản phẩm');
             }
 
-            // ✅ BƯỚC 6: Thành công - quay lại trang edit
+            // BƯỚC 6: Thành công - quay lại trang edit
             $_SESSION['success_message'] = "Cập nhật sản phẩm thành công!";
             header("Location: index.php?url=product/edit&id=" . $id);
             exit;

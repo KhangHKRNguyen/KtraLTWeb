@@ -12,6 +12,10 @@ spl_autoload_register(function($className) {
     if (file_exists("../core/$className.php")) {
         require_once "../core/$className.php";
     }
+    // Tìm trong thư mục interfaces
+    elseif (file_exists("../app/interfaces/$className.php")) {
+        require_once "../app/interfaces/$className.php";
+    }
     // Tìm trong thư mục controllers
     elseif (file_exists("../app/controllers/$className.php")) {
         require_once "../app/controllers/$className.php";

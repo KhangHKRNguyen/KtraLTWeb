@@ -1,6 +1,8 @@
 <?php
 // app/controllers/AuthController.php
-class AuthController extends Controller {
+require_once '../app/interfaces/AuthInterface.php';
+
+class AuthController extends Controller implements AuthInterface {
     private $userModel;
 
     public function __construct() {
