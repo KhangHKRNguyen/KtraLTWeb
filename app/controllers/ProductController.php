@@ -159,7 +159,8 @@ class ProductController extends Controller {
             'variants'   => $this->variantModel->getByProductID($id),
             'images'     => $this->imageModel->getByProductID($id),
             'categories' => $this->categoryModel->getAll(),
-            'suppliers'  => $this->supplierModel->getAll()
+            'suppliers'  => $this->supplierModel->getAll(),
+            'page_js_file' => 'assets/js/product-edit.js'
         ];
         $this->view('products/edit', $data);
     }

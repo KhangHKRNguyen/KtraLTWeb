@@ -113,7 +113,7 @@ $(document).ready(function () {
         const formData = new FormData(this);
 
         $.ajax({
-            url: SITE_URL,
+            url: 'index.php?url=productVariant/ajaxStore',
             type: 'POST',
             data: formData,
             dataType: 'json',
@@ -287,7 +287,7 @@ $(document).ready(function () {
         formData.append('product_id', productId);
 
         $.ajax({
-            url: SITE_URL,
+            url: 'index.php?url=productVariant/ajaxUpdate',
             type: 'POST',
             data: formData,
             dataType: 'json',
@@ -366,11 +366,9 @@ $(document).ready(function () {
                 });
 
                 $.ajax({
-                    url: SITE_URL,
+                    url: 'index.php?url=productVariant/ajaxDelete',
                     type: 'POST',
                     data: {
-                        controller: 'variant',
-                        action: 'ajax_delete',
                         id: variantId,
                         product_id: productId
                     },
@@ -464,7 +462,7 @@ $(document).ready(function () {
         const formData = new FormData(this);
 
         $.ajax({
-            url: SITE_URL,
+            url: 'index.php?url=productImage/ajaxStore',
             type: 'POST',
             data: formData,
             dataType: 'json',
@@ -527,12 +525,10 @@ $(document).ready(function () {
                 });
 
                 $.ajax({
-                    url: SITE_URL,
+                    url: 'index.php?url=productImage/ajaxDelete',
                     type: 'POST',
                     dataType: 'json',
                     data: {
-                        controller: 'image',
-                        action: 'ajax_delete',
                         product_id: productId,
                         id: imageId
                     },

@@ -55,15 +55,18 @@
 </div> 
 
 <?php
-    $current_controller = $_GET['controller'] ?? 'product';
-    $current_action = $_GET['action'] ?? 'index';
-    
-    // Đường dẫn để kiểm tra file trên server (tính từ file index.php trong public)
-    $page_js_file = "assets/js/{$current_controller}-{$current_action}.js";
+    if (!empty($page_js_file)) {
+        $resolved_js_file = $page_js_file;
+    } else {
+        $route = explode('/', $_GET['url'] ?? 'product/index');
+        $current_controller = $route[0] ?? 'product';
+        $current_action = $route[1] ?? 'index';
+        $resolved_js_file = "assets/js/{$current_controller}-{$current_action}.js";
+    }
 
     // Khi in ra link cho trình duyệt
-    if (file_exists($page_js_file)) {
-        echo '<script src="' . URLROOT . '/public/' . $page_js_file . '"></script>';
+    if (file_exists($resolved_js_file)) {
+        echo '<script src="' . URLROOT . '/public/' . $resolved_js_file . '"></script>';
     }
 ?>
 </body>

@@ -15,9 +15,9 @@ class ProductVariantController extends Controller {
     ];
 
     public function __construct() {
-        // Khởi tạo model thông qua hàm model() của lớp cha
-        $this->productModel = $this->model('ProductModel');
-        $this->variantModel = $this->model('VariantModel');
+        // Khởi tạo model đúng theo tên class trong app/models
+        $this->productModel = $this->model('Product');
+        $this->variantModel = $this->model('ProductVariant');
     }
 
     // ========== ACTIONS ==========
@@ -32,7 +32,7 @@ class ProductVariantController extends Controller {
             } else {
                 $_SESSION['error_message'] = $result['message'];
             }
-            header("Location: index.php?controller=product&action=edit&id=" . $product_id);
+            header("Location: index.php?url=product/edit&id=" . $product_id);
         }
     }
 
@@ -65,10 +65,13 @@ class ProductVariantController extends Controller {
             }
 
             $data = [
-                'id' => $id,
-                'price' => $price,
-                'stock' => $stock,
-                'image' => $imageUrl
+                ':id' => $id,
+                ':sku' => $existing['sku'],
+                ':color' => $existing['color'],
+                ':storage' => $existing['storage'],
+                ':price' => $price,
+                ':stock' => $stock,
+                ':image' => $imageUrl
             ];
 
             if ($this->variantModel->update($data)) {
@@ -95,7 +98,36 @@ class ProductVariantController extends Controller {
             if (!empty($variant['image'])) @unlink($variant['image']);
             $_SESSION['success_message'] = "Xóa thành công!";
         }
-        header("Location: index.php?controller=product&action=edit&id=" . $product_id);
+        header("Location: index.php?url=product/edit&id=" . $product_id);
+    }
+
+    public function ajaxDelete() {
+        header('Content-Type: application/json');
+        try {
+            $id = (int)($_POST['id'] ?? 0);
+            if ($id <= 0) {
+                throw new Exception('ID biến thể không hợp lệ');
+            }
+
+            $variant = $this->variantModel->getByID($id);
+            if (!$variant) {
+                throw new Exception('Biến thể không tồn tại');
+            }
+
+            if (!$this->variantModel->delete($id)) {
+                throw new Exception('Không thể xóa biến thể');
+            }
+
+            if (!empty($variant['image']) && file_exists($variant['image'])) {
+                @unlink($variant['image']);
+            }
+
+            echo json_encode(['success' => true, 'message' => 'Xóa biến thể thành công!']);
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        exit;
     }
 
     // ========== HELPERS (Private) ==========
@@ -106,15 +138,35 @@ class ProductVariantController extends Controller {
 
         $color = trim($postData['color'] ?? '');
         $storage = trim($postData['storage'] ?? '');
-        $price = $postData['price'] ?? 0;
-        $stock = $postData['stock'] ?? 0;
+        $price = (float)($postData['price'] ?? 0);
+        $stock = (int)($postData['stock'] ?? 0);
+
+        if ($color === '' || $storage === '') {
+            return ['success' => false, 'message' => 'Vui lòng chọn màu sắc và dung lượng'];
+        }
+        if ($price <= 0) {
+            return ['success' => false, 'message' => 'Giá bán phải lớn hơn 0'];
+        }
+        if ($stock < 0) {
+            return ['success' => false, 'message' => 'Tồn kho không hợp lệ'];
+        }
 
         // Logic tạo SKU
         $sku = $this->generateSKU($product['sku'], $color, $storage);
 
         // Kiểm tra tồn tại
+        $existingVariant = $this->variantModel->findByProductColorStorage($productId, $color, $storage);
+        if ($existingVariant) {
+            return [
+                'success' => false,
+                'message' => "Biến thể {$color} - {$storage} đã tồn tại",
+                'type' => 'warning',
+                'existing_id' => (int)$existingVariant['id']
+            ];
+        }
+
         if ($this->variantModel->findBySKU($sku)) {
-            return ['success' => false, 'message' => "Biến thể với SKU $sku đã tồn tại"];
+            return ['success' => false, 'message' => "Biến thể với SKU {$sku} đã tồn tại"];
         }
 
         $imagePath = '';
@@ -123,21 +175,34 @@ class ProductVariantController extends Controller {
         }
 
         $data = [
-            'product_id' => $productId,
-            'sku' => $sku,
-            'color' => $color,
-            'storage' => $storage,
-            'price' => $price,
-            'stock' => $stock,
-            'image' => $imagePath
+            ':product_id' => $productId,
+            ':sku' => $sku,
+            ':color' => $color,
+            ':storage' => $storage,
+            ':price' => $price,
+            ':stock' => $stock,
+            ':image' => $imagePath
         ];
 
         if ($this->variantModel->create($data)) {
-            // Nếu là AJAX, bạn có thể render HTML row ở đây hoặc trả về data
-            return ['success' => true, 'message' => 'Thành công', 'variant_id' => $productId];
+            $createdVariant = $this->variantModel->findBySKU($sku);
+            return [
+                'success' => true,
+                'message' => 'Thêm biến thể thành công',
+                'variant_id' => (int)($createdVariant['id'] ?? 0),
+                'variant_html' => $this->renderVariantRowHtml($createdVariant ?: [
+                    'id' => 0,
+                    'sku' => $sku,
+                    'color' => $color,
+                    'storage' => $storage,
+                    'price' => $price,
+                    'stock' => $stock,
+                    'image' => $imagePath
+                ])
+            ];
         }
 
-        return ['success' => false, 'message' => 'Lỗi hệ thống'];
+        return ['success' => false, 'message' => 'Không thể thêm biến thể'];
     }
 
     private function generateSKU($baseSku, $color, $storage) {
@@ -167,5 +232,39 @@ class ProductVariantController extends Controller {
         $vietnamese = ['à', 'á', 'ạ', 'ả', 'ã', 'â', 'ầ', 'ấ', 'ậ', 'ẩ', 'ẫ', 'ă', 'ằ', 'ắ', 'ặ', 'ẳ', 'ẵ', 'è', 'é', 'ẹ', 'ẻ', 'ẽ', 'ê', 'ề', 'ế', 'ệ', 'ể', 'ễ', 'ì', 'í', 'ị', 'ỉ', 'ĩ', 'ò', 'ó', 'ọ', 'ỏ', 'õ', 'ô', 'ồ', 'ố', 'ộ', 'ổ', 'ỗ', 'ơ', 'ờ', 'ớ', 'ợ', 'ở', 'ỡ', 'ù', 'ú', 'ụ', 'ủ', 'ũ', 'ư', 'ừ', 'ứ', 'ự', 'ử', 'ữ', 'ỳ', 'ý', 'ỵ', 'ỷ', 'ỹ', 'đ', 'À', 'Á', 'Ạ', 'Ả', 'Ã', 'Â', 'Ầ', 'Ấ', 'Ậ', 'Ẩ', 'Ẫ', 'Ă', 'Ằ', 'Ắ', 'Ặ', 'Ẳ', 'Ẵ', 'È', 'É', 'Ẹ', 'Ẻ', 'Ẽ', 'Ê', 'Ề', 'Ế', 'Ệ', 'Ể', 'Ễ', 'Ì', 'Í', 'Ị', 'Ỉ', 'Ĩ', 'Ò', 'Ó', 'Ọ', 'Ỏ', 'Õ', 'Ô', 'Ồ', 'Ố', 'Ộ', 'Ổ', 'Ỗ', 'Ơ', 'Ờ', 'Ớ', 'Ợ', 'Ở', 'Ỡ', 'Ù', 'Ú', 'Ụ', 'Ủ', 'Ũ', 'Ư', 'Ừ', 'Ứ', 'Ự', 'Ử', 'Ữ', 'Ỳ', 'Ý', 'Ỵ', 'Ỷ', 'Ỹ', 'Đ'];
         $latin = ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i', 'i', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'y', 'y', 'y', 'y', 'y', 'd', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'I', 'I', 'I', 'I', 'I', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'U', 'U', 'U', 'U', 'U', 'U', 'U', 'U', 'U', 'U', 'U', 'Y', 'Y', 'Y', 'Y', 'Y', 'D'];
         return str_replace($vietnamese, $latin, $str);
+    }
+
+    private function renderVariantRowHtml($variant) {
+        $id = (int)($variant['id'] ?? 0);
+        $image = !empty($variant['image'])
+            ? '<img src="' . htmlspecialchars($variant['image']) . '" class="variant-thumbnail" alt="' . htmlspecialchars($variant['color']) . '">'
+            : '<i class="fas fa-image text-muted"></i>';
+
+        return '
+            <tr id="variant-' . $id . '">
+                <td>' . $image . '</td>
+                <td><span class="badge bg-secondary">' . htmlspecialchars($variant['sku']) . '</span></td>
+                <td>' . htmlspecialchars($variant['color']) . '</td>
+                <td>' . htmlspecialchars($variant['storage']) . '</td>
+                <td><span id="variant-price-' . $id . '">' . number_format((float)$variant['price']) . ' đ</span></td>
+                <td><span id="variant-stock-' . $id . '">' . (int)$variant['stock'] . '</span></td>
+                <td>
+                    <button type="button"
+                        class="btn btn-warning-modern btn-sm btn-edit-variant"
+                        data-id="' . $id . '"
+                        data-color="' . htmlspecialchars($variant['color']) . '"
+                        data-storage="' . htmlspecialchars($variant['storage']) . '"
+                        data-price="' . (float)$variant['price'] . '"
+                        data-stock="' . (int)$variant['stock'] . '">
+                        <i class="fas fa-edit"></i> Sửa
+                    </button>
+                    <button type="button"
+                        class="btn btn-danger-modern btn-sm btn-delete-variant"
+                        data-id="' . $id . '"
+                        data-name="' . htmlspecialchars($variant['color'] . ' - ' . $variant['storage']) . '">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>';
     }
 }
