@@ -11,35 +11,35 @@
                 <div class="footer-member">
                     <h6>Nguyễn Ngọc Linh</h6>
                     <img src="<?php echo URLROOT; ?>/public/assets/images/team/linh.jpg" alt="Nguyễn Ngọc Linh" class="img-fluid rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover;">
-                    <p class="text-muted small">Build models/ Controllers/ Search</p>
+                    <p class="text-muted small">Thiết kế giao diện, lọc, tìm kiếm sản phẩm</p>
                 </div>
             </div>
             <div class="col-lg-2 col-md-4 col-sm-6">
                 <div class="footer-member">
                     <h6>Phạm Trung Hiếu</h6>
-                    <img src="<?php echo URLROOT; ?>/public/assets/images/team/linh.jpg" alt="Phạm Trung Hiếu" class="img-fluid rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover;">
-                    <p class="text-muted small">Import / View Products</p>
+                    <img src="<?php echo URLROOT; ?>/public/assets/images/team/hieu.jpg" alt="Phạm Trung Hiếu" class="img-fluid rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover;">
+                    <p class="text-muted small">Import, Export</p>
                 </div>
             </div>
             <div class="col-lg-2 col-md-4 col-sm-6">
                 <div class="footer-member">
                     <h6>Đào Thị Huyền</h6>
-                    <img src="<?php echo URLROOT; ?>/public/assets/images/team/linh.jpg" alt="Đào Thị Huyền" class="img-fluid rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover;">
-                    <p class="text-muted small">Export/ Delete Products</p>
+                    <img src="<?php echo URLROOT; ?>/public/assets/images/team/huyen.jpg" alt="Đào Thị Huyền" class="img-fluid rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover;">
+                    <p class="text-muted small">Thêm, sửa, xóa sản phẩm và phân trang</p>
                 </div>
             </div>
             <div class="col-lg-2 col-md-4 col-sm-6">
                 <div class="footer-member">
                     <h6>Nguyễn Đức Huy Khang</h6>
-                    <img src="<?php echo URLROOT; ?>/public/assets/images/team/linh.jpg" alt="Nguyễn Đức Huy Khang" class="img-fluid rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover;">
-                    <p class="text-muted small">Create Products</p>
+                    <img src="<?php echo URLROOT; ?>/public/assets/images/team/khang.jpg" alt="Nguyễn Đức Huy Khang" class="img-fluid rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover;">
+                    <p class="text-muted small">Khởi tạo cấu trúc dự án, hiển thị trang chủ, header, footer</p>
                 </div>
             </div>
             <div class="col-lg-2 col-md-4 col-sm-6">
                 <div class="footer-member">
                     <h6>Lương Minh Đạt</h6>
                     <img src="<?php echo URLROOT; ?>/public/assets/images/team/linh.jpg" alt="Lương Minh Đạt" class="img-fluid rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover;">
-                    <p class="text-muted small">Resources / Database / Update Products</p>
+                    <p class="text-muted small">Đăng nhập, đăng ký, user</p>
                 </div>
             </div>
         </div>

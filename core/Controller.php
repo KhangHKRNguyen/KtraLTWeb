@@ -2,8 +2,8 @@
 // core/Controller.php
 abstract class Controller {
     public function model($model) {
-    if (class_exists($model)) {
-        return new $model();
+    if (!class_exists($model)) {
+        die("Model $model không tồn tại");
     }
     return new $model();
 }
@@ -13,7 +13,7 @@ abstract class Controller {
     // Giải nén mảng data thành các biến riêng lẻ (ví dụ: $data['products'] thành $products)
     extract($data);
 
-    // 1. Nhúng Header (Nơi chứa CSS và jQuery)
+    // 1. Nhúng Header
     if (file_exists('../app/views/layouts/header.php')) {
         require_once '../app/views/layouts/header.php';
     }
@@ -25,7 +25,7 @@ abstract class Controller {
         die("View không tồn tại.");
     }
 
-    // 3. Nhúng Footer (Nơi chứa các script kết thúc trang)
+    // 3. Nhúng Footer
     if (file_exists('../app/views/layouts/footer.php')) {
         require_once '../app/views/layouts/footer.php';
     }
