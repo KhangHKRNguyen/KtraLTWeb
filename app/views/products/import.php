@@ -31,7 +31,8 @@
                     <span class="badge bg-light text-dark">Bước 1</span>
                 </div>
                 <div class="card-body-ajax">
-                    <form id="import-form" action="index.php?controller=product&action=import_process" method="POST" enctype="multipart/form-data">
+                    <form id="import-form" action="index.php?url=product/importProcess" method="POST" enctype="multipart/form-data">
+
                         
                         <!-- File Upload Area -->
                         <div class="upload-area mb-4" id="upload-area">
@@ -118,13 +119,9 @@
                     <p class="text-muted mb-3">
                         Tải file Excel mẫu để đảm bảo định dạng đúng
                     </p>
-                    <a href="index.php?controller=product&action=export_template" 
+                    <a href="index.php?url=product/exportTemplate" 
                        class="btn btn-success-modern w-100 mb-2">
                         <i class="fas fa-file-excel"></i> Tải file mẫu (.xlsx)
-                    </a>
-                    <a href="index.php?controller=product&action=export_template&format=csv" 
-                       class="btn btn-info-modern w-100">
-                        <i class="fas fa-file-csv"></i> Tải file mẫu (.csv)
                     </a>
                 </div>
             </div>

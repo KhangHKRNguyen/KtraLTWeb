@@ -1651,6 +1651,31 @@ body.dark-mode .page-header .breadcrumb-item.active {
     opacity: 1 !important;
 }
 
+/* FIX IMPORT PAGE - ép row không tràn và căn giữa */
+.main-container {
+    width: min(1580px, calc(100% - 48px)) !important;
+    max-width: 1580px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    overflow-x: hidden !important;
+}
+
+.main-container > .row.g-4 {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    --bs-gutter-x: 0 !important;
+}
+
+.main-container > .row.g-4 > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
 /* =========================================================
    RESPONSIVE
 ========================================================= */

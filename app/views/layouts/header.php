@@ -48,7 +48,18 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
-        <div class="d-flex justify-content-end align-items-center mb-3">
+        <div class="d-flex justify-content-end align-items-center mb-3 gap-2">
+            <?php if (isset($_SESSION['user'])): ?>
+                <span class="text-muted small">
+                    <i class="fas fa-user-circle me-1"></i>
+                    Xin chào, <strong><?php echo htmlspecialchars($_SESSION['user']['full_name'] ?: $_SESSION['user']['username']); ?></strong>
+                </span>
+                <a href="<?php echo URLROOT; ?>/public/index.php?url=auth/logout"
+                   class="btn btn-outline-danger btn-sm"
+                   onclick="return confirm('Bạn có chắc muốn đăng xuất?')">
+                    <i class="fas fa-sign-out-alt me-1"></i>Đăng xuất
+                </a>
+            <?php endif; ?>
             <button id="toggle-dark-mode" class="btn btn-outline-secondary btn-sm">
                 <i class="fas fa-moon"></i> Dark Mode
             </button>
