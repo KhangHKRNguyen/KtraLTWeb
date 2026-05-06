@@ -6,7 +6,7 @@ class ProductImageController extends Controller {
 
     public function __construct() {
         // Khởi tạo model xử lý ảnh
-        $this->imageModel = $this->model('ProductImageModel');
+        $this->imageModel = $this->model('ProductImage');
     }
 
     // ========== ACTIONS ==========

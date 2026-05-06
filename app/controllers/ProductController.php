@@ -160,7 +160,8 @@ class ProductController extends Controller implements CrudInterface {
             'variants'   => $this->variantModel->getByProductID($id),
             'images'     => $this->imageModel->getByProductID($id),
             'categories' => $this->categoryModel->getAll(),
-            'suppliers'  => $this->supplierModel->getAll()
+            'suppliers'  => $this->supplierModel->getAll(),
+            'page_js_file' => 'assets/js/product-edit.js'
         ];
         $this->view('products/edit', $data);
     }
@@ -276,15 +277,21 @@ class ProductController extends Controller implements CrudInterface {
         header('Expires: 0');
         header('Access-Control-Allow-Origin: *');
         
+        
+
         try {
             $params = $this->getFilterParams();
+            error_log("DEBUG ajax_list: params = " . json_encode($params));
+            
             $limit = 10;
             $offset = ($params['page'] - 1) * $limit;
+            error_log("DEBUG ajax_list: page=" . $params['page'] . ", limit=" . $limit . ", offset=" . $offset);
 
             $totalRecords = $this->productModel->countAll(
                 $params['search'], $params['min_price'], $params['max_price'], 
                 $params['category_id'], $params['supplier_id']
             );
+            error_log("DEBUG ajax_list: totalRecords = " . $totalRecords);
             
             if ($totalRecords === false) {
                 throw new Exception('Không thể lấy số lượng sản phẩm từ database');
@@ -294,6 +301,7 @@ class ProductController extends Controller implements CrudInterface {
                 $params['search'], $params['min_price'], $params['max_price'], 
                 $params['category_id'], $params['supplier_id'], $limit, $offset
             );
+            error_log("DEBUG ajax_list: retrieved " . count($products) . " products");
             
             if ($products === false) {
                 throw new Exception('Không thể lấy danh sách sản phẩm từ database');
@@ -304,13 +312,17 @@ class ProductController extends Controller implements CrudInterface {
                 $tableHtml .= $this->renderProductRow($row);
             }
 
+            $paginationHtml = $this->renderPagination($totalRecords, $limit, $params);
+            error_log("DEBUG ajax_list: pagination HTML length = " . strlen($paginationHtml));
+
             echo json_encode([
                 'success' => true,
                 'table_html' => $tableHtml ?: $this->renderEmptyState(),
-                'pagination_html' => $this->renderPagination($totalRecords, $limit, $params),
+                'pagination_html' => $paginationHtml,
                 'total_products' => $totalRecords
             ]);
         } catch (Exception $e) {
+            error_log("ERROR ajax_list: " . $e->getMessage());
             http_response_code(500);
             echo json_encode([
                 'success' => false, 
@@ -728,7 +740,7 @@ foreach ($headers as $col => $label) {
         // Nếu chỉ có 1 trang thì không hiện phân trang
         if ($totalPages <= 1) return '';
 
-        $currentPage = $params['page'];
+       $currentPage = isset($params['page']) ? (int)$params['page'] : 1;
         $html = '<nav aria-label="Page navigation"><ul class="pagination justify-content-center mb-0">';
 
         // --- Nút TRƯỚC (PREVIOUS) ---
@@ -756,6 +768,7 @@ foreach ($headers as $col => $label) {
             $html .= '<li class="page-item ' . $active . '">
                         <a class="page-link" href="javascript:void(0)" data-page="' . $i . '">' . $i . '</a>
                     </li>';
+// <a class="page-link" href="javascript:void(0)" data-page="2">2</a>
         }
 
         if ($end < $totalPages) {
