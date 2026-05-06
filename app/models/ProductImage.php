@@ -17,12 +17,14 @@ class ProductImage {
 
     public function addImage($product_id, $image_url) {
         $query = "INSERT INTO {$this->table} (product_id, image_url) VALUES (:product_id, :image_url)";
-        
-        // Trả về kết quả thực thi (True/False)
-        return $this->db->query($query, [
+
+        $this->db->query($query, [
             ':product_id' => $product_id,
             ':image_url' => $image_url
         ]);
+
+        // Trả về ID ảnh vừa tạo để controller render đúng item.
+        return (int)$this->db->lastInsertId();
     }
 
     public function getByID($id) {

@@ -472,14 +472,27 @@ $(document).ready(function () {
                 if (response.success) {
                     showToast(response.message, 'success');
                     $('#no-images-row').remove();
-                    imageGallery.append(response.image_html);
+
+                    // Hỗ trợ upload một hoặc nhiều ảnh từ backend trả về images[].
+                    if (Array.isArray(response.images) && response.images.length > 0) {
+                        response.images.forEach(function (img) {
+                            if (img.image_html) {
+                                imageGallery.append(img.image_html);
+                            }
+                        });
+                    } else if (response.image_html) {
+                        // Tương thích ngược nếu backend cũ trả về 1 ảnh.
+                        imageGallery.append(response.image_html);
+                    }
+
                     $form[0].reset();
                     $('#image_url').next('.form-text').html('Chọn file ảnh (JPG, PNG, GIF, WEBP - Max 5MB)');
                     
                     // Scroll to new image
-                    if (response.image_id) {
+                    const firstImageId = response.image_id || (response.images && response.images[0] ? response.images[0].id : null);
+                    if (firstImageId) {
                         $('html, body').animate({
-                            scrollTop: $('#image-item-' + response.image_id).offset().top - 100
+                            scrollTop: $('#image-' + firstImageId).offset().top - 100
                         }, 500);
                     }
                 } else {
